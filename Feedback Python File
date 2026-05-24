@@ -52,4 +52,4 @@ df['Recommendation Phrase'] = df['Recommendation'].apply(extract_keywords_keyber
 
 # ----------- Save to Excel -----------
 df.to_excel(output_path, index=False)
-print(f"✅ Sentiment and keyword extraction complete.\n📁 Output saved to:\n{output_path}")
+print(f"Sentiment and keyword extraction complete.\n Output saved to:\n{output_path}")
