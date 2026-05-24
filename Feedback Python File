@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+import pandas as pd
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from keybert import KeyBERT
+
+# ----------- Configuration -----------
+input_path = r'C:\Users\T.M\OneDrive\Feedback Form 1.xlsx'
+output_path = r'C:\Users\T.M\OneDrive\Business Analytics Msc\Capstone Project\Sentiment Analysis File.xlsx'
+
+# ----------- Initialize Tools -----------
+analyzer = SentimentIntensityAnalyzer()
+kw_model = KeyBERT(model='all-MiniLM-L6-v2')
+
+# ----------- Sentiment Function -----------
+def get_sentiment(text):
+    if not isinstance(text, str) or not text.strip():
+        return "neutral"
+    score = analyzer.polarity_scores(text)
+    compound = score['compound']
+    if compound > 0.1:
+        return "positive"
+    elif compound < -0.1:
+        return "negative"
+    else:
+        return "neutral"
+
+# ----------- Keyword Extraction Function -----------
+def extract_keywords_keybert(text):
+    if not isinstance(text, str) or not text.strip():
+        return ""
+    keywords = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 2),
+        stop_words='english',
+        top_n=5
+    )
+    top_keywords = [kw for kw, score in keywords]
+    return ", ".join(top_keywords)
+
+# ----------- Load Excel Data by Index (Columns F, K, AC, AD) -----------
+df = pd.read_excel(input_path, usecols=[5, 10, 29, 30])
+df.columns = ['Date', 'Demography', 'Recommendation', 'Overall Feedback']
+
+# ----------- Perform Sentiment & Phrase Extraction -----------
+df['Overall Feedback Sentiment'] = df['Overall Feedback'].apply(get_sentiment)
+df['Overall Feedback Phrase'] = df['Overall Feedback'].apply(extract_keywords_keybert)
+
+df['Recommendation Sentiment'] = df['Recommendation'].apply(get_sentiment)
+df['Recommendation Phrase'] = df['Recommendation'].apply(extract_keywords_keybert)
+
+# ----------- Save to Excel -----------
+df.to_excel(output_path, index=False)
+print(f"✅ Sentiment and keyword extraction complete.\n📁 Output saved to:\n{output_path}")
